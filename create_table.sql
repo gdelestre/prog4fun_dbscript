@@ -26,7 +26,7 @@ REFERENCES langage(id));
 
 CREATE TABLE IF NOT EXISTS fonction(
 id int AUTO_INCREMENT NOT NULL,
-nom_fonction varchar(50) UNIQUE,
+nom_fonction varchar(200) UNIQUE,
 PRIMARY KEY(id));
 
 
@@ -35,7 +35,7 @@ id int AUTO_INCREMENT NOT NULL,
 id_fonction int NOT NULL,
 id_langage int NOT NULL,
 detail varchar(255),
-ligne_commande varchar(200),
+ligne_commande varchar(255),
 PRIMARY KEY(id),
 CONSTRAINT FK_commande_pour_fonction FOREIGN KEY (id_fonction)
 REFERENCES fonction(id),
@@ -47,7 +47,7 @@ id int AUTO_INCREMENT NOT NULL,
 id_fonction int NOT NULL,
 id_outil int NOT NULL,
 num_etape int,
-nom_fichier varchar(30),
+nom_fichier varchar(50),
 detail varchar(255) NOT NULL,
 ligne_commande TEXT NOT NULL,
 PRIMARY KEY(id),
