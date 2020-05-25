@@ -46,7 +46,7 @@ VALUES
 ('Insérer les données dans une table'),
 ('Modifier des données dans une table'),
 ('Mettre en place la pagination'),
-('Commande Maven'),
+('Packager une application'),
 ('Changer de répertoire'),
 ('Lister les éléments d\'un dossier'),
 ('Créer un dossier'),
@@ -59,7 +59,9 @@ VALUES
 ('Utiliser la boucle For en html'),
 ('Utiliser une classe DTO pour les web-services REST'),
 ('Utiliser une vue SQL pour les web-services REST'),
-('Construire sa requête avec Spring DATA JPA');
+('Construire sa requête avec Spring DATA JPA'),
+('Lancer tout les tests'),
+('Opération CRUD');
 
 INSERT INTO commande (id_langage, id_fonction, detail, ligne_commande)
 VALUES
@@ -181,7 +183,7 @@ NgbModule' ),
 (5, 21, 4, 'html', 'Dans le fichier html, il faut rajouter les balises <ngb-pagination>', '<ngb-pagination\n [(page)]="leNumPage"\n [pageSize]="laTaillePage"\n [collectionSize]="totalElement"
 [maxSize]="3"\n (pageChange)="listFonctionSearch()"></ngb-pagination>'),
 (5, 21, 5, 'ts', 'Attention en html la pagination commence à 1, tandis que pour Springboot elle commence à 0.', 'this.rechercheService.getAllFonctions(this.keyword, this.leNumPage -1,.....)\n  this.leNumPage = data.page.number + 1;'),
-(4, 22, 1, '', 'Packager son application', 'mvn clean install : clean permet de nettoyer tous les artéfacts créés lors des précédents builds.'),
+(4, 22, 1, 'pom.xml', 'Indiquer le type de packaging que l\'on veut réaliser (Jar, War, etc..)', '<packaging>war</packaging>'),
 (4, 22, 2, 'pom.xml', 'Attention pour les versions de Java supérieures à 8, il y a des modifications à faire. Il faut également que la bonne version de maven soit installée.',
  '<plugin>
     <groupId>org.apache.maven.plugins</groupId>
@@ -191,7 +193,8 @@ NgbModule' ),
         <release>11</release> 
     </configuration>
 </plugin>'),
-(4, 22, 1, '', 'Lancer tous les tests', 'mvn clean test : clean permet de nettoyer tous les artéfacts créés lors des précédents builds.'),
+(4, 22, 3, '', 'Packager son application avec la commande Maven', 'mvn clean install : clean permet de nettoyer tous les artéfacts créés lors des précédents builds.'),
+(4, 36, 1, '', 'Lancer tous les tests', 'mvn clean test : clean permet de nettoyer tous les artéfacts créés lors des précédents builds.'),
 (3, 8, 1, 'Spring Initializer', 'Créer son projet. Adresse : https://start.spring.io/', 'Dépendances essentielles pour un projet relié à une base de données:\nConnector JDBC, JPA, REST, Thymeleaf'),
 (3, 8, 2, 'Dossier template', 'Créer les pages html', 'La première page doit s\'appeler index.html'),
 (3, 8, 3, 'Controller', 'La logique entre le code Java et les pages Html passe par les classes Controller (annotées @Controller)', '@Controller\n public class MainController {.....}'),
@@ -290,7 +293,79 @@ findByFirstNameOrCountryAllIgnoreCase(String firstName, String country);
 findByFirstNameOrderByLastNameAsc(String firstName);
 findByNameLike(String likePattern);
 findByNameStartingWith(String prefix);
-findByAgeLessThan(Integer age);');
+findByAgeLessThan(Integer age);'),
+(2, 37, 1, 'Classe DAO', 'Toutes les classes DAO sont des repository, il faut rajouter cette annotation.', 
+'@Repository
+public class PersonneDAOImpl implements PersonneDAO {.....}'),
+(2, 37, 2, 'Classe DAO', 'Création d\'un objet EntityManager qui sera autoinjecté.',
+'private EntityManager entityManager;
+
+@Autowired
+public PersonneDAOImpl(EntityManager entityManager) {
+	this.entityManager = entityManager;}'),
+(2, 37, 3, 'Classe DAO - Méthode', 'Pour chaque méthode il faut récupérer la session',
+'Session currentSession = this.entityManager.unwrap(Session.class);'),
+(2, 37, 4, 'Classe DAO - Méthode','Création de la requête à partir de la Session récupérée',
+'//Récupération de toutes les personnes
+Query<Personne> maRequete = currentSession.createQuery("from Personne", Personne.class);
+//Suppression d\'une personne à partir de l\'id
+Query maRequete = currentSession.createQuery("delete from Personne where id=:personneId");
+maRequete.setParameter("personneId", id);
+//Pour la Sauvegarde, la mise à jour et la récupération d\'un objet il n\'y a pas de requête'),
+(2, 37, 5, 'Classe DAO - Méthode', 'Exécution de la requête ou utilisation des méthodes Hibernate puis retour du résultat',
+'// Méthode Get pour une Liste d\'objet
+List<Personne> lesPersonnes = maRequete.getResultList();
+// Méthode Get pour un seul objet
+Personne personne = currentSession.get(Personne.class, id);
+// Méthode POST ou PUT
+currentSession.saveOrUpdate(personne);
+//Méthode DELETE
+maRequete.executeUpdate();'),
+(2, 37, 6, 'Classe DAO - Méthode', 'Exemples de méthodes complètes',
+'public Personne findById(int id) {
+    Session currentSession = this.entityManager.unwrap(Session.class);
+    return currentSession.get(Personne.class, id);
+    }
+
+public void saveOrUpdate(Serie maSerie) {
+        Session currentSession = this.entityManager.unwrap(Session.class);
+        currentSession.saveOrUpdate(maSerie);
+    }
+	
+public void deleteById(int id) {
+        Session currentSession = (Session)this.entityManager.unwrap(Session.class);
+        Query maRequete = currentSession.createQuery("delete from Serie where id=:serieId");
+        maRequete.setParameter("serieId", id);
+        maRequete.executeUpdate();
+    }
+
+public List<Personne> findAll() {
+        Session currentSession = this.entityManager.unwrap(Session.class);
+        Query<Personne> maRequete = currentSession.createQuery("from Personne", Personne.class);
+        return maRequete.getResultList();
+    }'),
+(2, 37, 7, 'Classe Service', 'Les classes DAO construites sont appelées par des classes de services',
+'@Service
+public class PersonneServiceImpl implements PersonneService {.....}'),
+(2, 37, 8, 'Classe Service', 'Création d\'un objet DAO autoinjecté',
+'private PersonneDAO personneDAO;
+
+@Autowired
+public PersonneServiceImpl(PersonneDAO personneDAO) {
+    this.personneDAO = personneDAO;
+    }'),
+(2, 37, 9, 'Classe Service - Méthode', 'Au niveau de chaque méthode, il faut indiquer Transactionnal pour gérer automatiquement les ouvertures et fermetures de sessions.',
+'@Transactional
+public List<Personne> findAll() {
+    return this.personneDAO.findAll();
+    }');
+	
+
+
+
+
+
+
 
 
 
